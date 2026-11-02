@@ -176,8 +176,7 @@
         state.score++;
       }
       if (!p.hit && birdHitsPipe(p)) {
-        p.hit = true;
-        state.hits++;
+        p.hit = true; // flash once per pipe
         state.bird.hitFlash = 1;
       }
     }
