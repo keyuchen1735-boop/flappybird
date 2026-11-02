@@ -97,15 +97,14 @@
       return;
     }
 
-    groundOffset = (groundOffset + SCROLL) % 24;
+    groundOffset = (groundOffset + SCROLL * 1.2 ** score) % 24;
 
     bird.vy = Math.min(bird.vy + GRAVITY, MAX_FALL);
     bird.y += bird.vy;
     bird.rot = Math.max(-0.5, Math.min(bird.vy / 12, Math.PI / 2));
 
-    for (const p of pipes) p.x -= SCROLL;
+    for (const p of pipes) p.x -= SCROLL * 1.2 ** score;
 
-    if (pipes.length && pipes[0].x + PIPE_W < -10) pipes.shift();
     const last = pipes[pipes.length - 1];
     if (last && last.x < W - PIPE_SPACING) spawnPipe(last.x + PIPE_SPACING);
 
@@ -117,6 +116,7 @@
       }
       if (hitsPipe(bird, p)) die();
     }
+    if (pipes.length && pipes[0].x + PIPE_W < -10) pipes.shift();
 
     if (hitsGroundOrCeiling(bird)) die();
   }
