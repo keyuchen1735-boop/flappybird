@@ -50,9 +50,9 @@
   const BIRD_X = 90;
   const BIRD_R = 16;
 
-  const PIPE_BODY = '#2e86de';
-  const PIPE_EDGE = '#1b4f8a';
-  const PIPE_HIGHLIGHT = '#6fb1f2';
+  const PIPE_BODY = '#73bf2e';
+  const PIPE_EDGE = '#3e7a14';
+  const PIPE_HIGHLIGHT = '#a4e05a';
 
   const state = {
     mode: 'ready', // 'ready' | 'playing' | 'over'
@@ -144,7 +144,7 @@
 
     updateBird(dt, false);
 
-    // Scoring. Pipes have no collision: the bird flies straight through them.
+    // Scoring
     for (const p of state.pipes) {
       if (!p.passed && p.x + PIPE_WIDTH < BIRD_X - BIRD_R) {
         p.passed = true;
@@ -152,11 +152,36 @@
       }
     }
 
-    // Ground is the one thing that ends the run
+    // Pipes and ground end the run
+    if (hitsPipe()) {
+      endGame();
+    }
     if (state.bird.y + BIRD_R >= H - GROUND_H) {
       state.bird.y = H - GROUND_H - BIRD_R;
       endGame();
     }
+  }
+
+  // Circle (bird) vs. the two rectangles of each pipe (top and bottom).
+  // Pipe caps are 5px wider than the body on each side, so use the cap width.
+  function hitsPipe() {
+    const b = state.bird;
+    for (const p of state.pipes) {
+      const left = p.x - 5;
+      const right = p.x + PIPE_WIDTH + 5;
+      const rects = [
+        { top: 0, bottom: p.gapTop },
+        { top: p.gapTop + PIPE_GAP, bottom: H - GROUND_H },
+      ];
+      for (const r of rects) {
+        const nx = Math.max(left, Math.min(BIRD_X, right));
+        const ny = Math.max(r.top, Math.min(b.y, r.bottom));
+        const dx = BIRD_X - nx;
+        const dy = b.y - ny;
+        if (dx * dx + dy * dy < BIRD_R * BIRD_R) return true;
+      }
+    }
+    return false;
   }
 
   function updateBird(dt, falling) {
