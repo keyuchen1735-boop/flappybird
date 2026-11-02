@@ -169,28 +169,16 @@
     ctx.strokeRect(rx + 1, y + 1, rw - 2, 24);
   }
 
-  // 8-bit autumn backdrop: banded sky, sun, blocky tree line, falling leaves
-  const SKY = ['#f6c26b', '#f2a65a', '#e8895a', '#c96b5a', '#9c5a63'];
-  const TREES = ['#a8431f', '#d1701f', '#e8a02a', '#7a3a1d'];
-  const LEAF = ['#d1701f', '#e8a02a', '#a8431f', '#c9501f'];
-  function drawAutumn() {
-    const px = 4, gy = H - GROUND_H;
-    const band = Math.ceil(gy / SKY.length / px) * px;
-    SKY.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(0, i * band, W, band); });
-    ctx.fillStyle = '#fff1b8'; ctx.fillRect(250, 70, 40, 40);
-    ctx.fillStyle = '#ffe08a'; ctx.fillRect(258, 62, 24, 8); ctx.fillRect(258, 110, 24, 8);
-    for (let x = 0, i = 0; x < W; x += 28, i++) {
-      const h = 40 + ((i * 37) % 5) * 12;
-      ctx.fillStyle = TREES[i % TREES.length];
-      ctx.fillRect(x, gy - h, 28, h);
-      ctx.fillRect(x + 4, gy - h - 8, 20, 8);
-    }
-    for (let i = 0; i < 14; i++) {
-      const x = Math.floor(((i * 53 + frame * (0.4 + (i % 3) * 0.2)) % (W + 20)) / px) * px - 10;
-      const y = Math.floor(((i * 91 + frame * (0.8 + (i % 4) * 0.3)) % gy) / px) * px;
-      ctx.fillStyle = LEAF[i % LEAF.length];
-      ctx.fillRect(x, y, px * 2, px);
-      ctx.fillRect(x + px, y + px, px, px);
+  function drawClouds() {
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    for (let i = 0; i < 4; i++) {
+      const cx = ((i * 127 + frame * 0.25) % (W + 90)) - 45;
+      const cy = 70 + (i % 3) * 52;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+      ctx.arc(cx + 20, cy + 4, 13, 0, Math.PI * 2);
+      ctx.arc(cx - 20, cy + 5, 11, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
@@ -267,7 +255,10 @@
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    drawAutumn();
+    ctx.fillStyle = '#4ec0ca';
+    ctx.fillRect(0, 0, W, H);
+
+    drawClouds();
     for (const p of pipes) drawPipe(p);
     drawGround();
     drawBird();
