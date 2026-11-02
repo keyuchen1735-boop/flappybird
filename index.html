@@ -223,12 +223,73 @@
   }
 
   // ---------- Drawing ----------
+  const FLOOR = H - GROUND_H;
+  const AUTUMN_SKY = ctx.createLinearGradient(0, 0, 0, FLOOR);
+  AUTUMN_SKY.addColorStop(0, '#6d8fa8');
+  AUTUMN_SKY.addColorStop(0.55, '#e9b77f');
+  AUTUMN_SKY.addColorStop(1, '#f6cf8e');
+  const FOLIAGE = ['#c8452a', '#e2822b', '#edb53a', '#a5342a'];
+
+  const farHillY = (x) => FLOOR - 110 + Math.sin(x * 0.012) * 26 + Math.sin(x * 0.031) * 10;
+  const nearHillY = (x) => FLOOR - 55 + Math.sin(x * 0.017 + 2) * 18 + Math.sin(x * 0.04) * 6;
+
+  function drawHill(color, hillY, scroll) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, FLOOR);
+    for (let x = 0; x <= W + 8; x += 8) ctx.lineTo(x, hillY(x + scroll));
+    ctx.lineTo(W + 8, FLOOR);
+    ctx.fill();
+  }
+
+  function drawTrees(scroll) {
+    const gap = 86;
+    for (let i = Math.floor(scroll / gap) - 1; i * gap - scroll < W + gap; i++) {
+      const n = Math.abs(i);
+      const worldX = i * gap + (n * 37) % 30;
+      const x = worldX - scroll;
+      const base = nearHillY(worldX) + 4;
+      const r = 17 + (n * 13) % 8;
+      ctx.fillStyle = '#4a2c18';
+      ctx.fillRect(x - 3, base - r - 12, 6, r + 12);
+      ctx.fillStyle = FOLIAGE[n % FOLIAGE.length];
+      for (const [dx, dy, cr] of [[0, 22, r], [-r * 0.7, 12, r * 0.7], [r * 0.7, 12, r * 0.7]]) {
+        ctx.beginPath();
+        ctx.arc(x + dx, base - r - dy, cr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Leaf positions are derived from time, so no per-leaf state is needed
+  function drawLeaves() {
+    const t = state.time;
+    for (let i = 0; i < 14; i++) {
+      const y = (t * (0.03 + (i % 3) * 0.012) + i * 131) % (FLOOR + 20) - 10;
+      const x = W + 20 - (t * (0.02 + (i % 4) * 0.01) + i * 83) % (W + 40);
+      ctx.fillStyle = FOLIAGE[i % FOLIAGE.length];
+      ctx.beginPath();
+      ctx.ellipse(x + Math.sin(t / 500 + i) * 10, y, 5, 2.5, t / 400 + i, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   function drawBackground() {
-    ctx.fillStyle = '#70c5ce';
+    ctx.fillStyle = AUTUMN_SKY;
     ctx.fillRect(0, 0, W, H);
 
+    // Low sun
+    ctx.fillStyle = 'rgba(255,226,150,0.45)';
+    ctx.beginPath();
+    ctx.arc(300, 300, 54, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffe8a8';
+    ctx.beginPath();
+    ctx.arc(300, 300, 38, 0, Math.PI * 2);
+    ctx.fill();
+
     // Clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillStyle = 'rgba(255,236,214,0.85)';
     for (const c of state.clouds) {
       ctx.beginPath();
       ctx.arc(c.x, c.y, 18 * c.s, 0, Math.PI * 2);
@@ -236,6 +297,12 @@
       ctx.arc(c.x + 46 * c.s, c.y, 16 * c.s, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    drawHill('#a0705a', farHillY, state.time * 0.008);
+    const nearScroll = state.time * 0.02;
+    drawTrees(nearScroll);
+    drawHill('#7a4526', nearHillY, nearScroll);
+    drawLeaves();
   }
 
   function drawPipe(x, y, w, h, capAtTop) {
