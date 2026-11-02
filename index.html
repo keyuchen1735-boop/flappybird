@@ -212,19 +212,115 @@
   }
 
   // ---------- Drawing ----------
+  // ---------- 8-bit autumn background ----------
+  const PX = 4; // size of one "8-bit" pixel
+  const FLOOR = H - GROUND_H;
+  const snap = (v) => Math.floor(v / PX) * PX;
+  const SKY = ['#3f6f9f', '#5a86a8', '#7f9aa8', '#a8a595', '#d0a97f', '#e8a860', '#f0bc6c', '#f6d08a'];
+  const FOLIAGE = [
+    { l: '#e8693a', c: '#c8401f', d: '#8f2a18' }, // red
+    { l: '#f4a43a', c: '#e07b1a', d: '#a8530f' }, // orange
+    { l: '#f8d858', c: '#e8b020', d: '#b07e12' }, // gold
+    { l: '#c8503c', c: '#a82e24', d: '#701c18' }, // maroon
+  ];
+  const LEAVES = ['#c8401f', '#e07b1a', '#e8b020', '#a82e24'];
+  const TREE = [
+    '...lllc....',
+    '.lllccccc..',
+    'llcccccccd.',
+    'lcccccccccd',
+    'lcccdcccccd',
+    'ccccccccddd',
+    'ccdcccccccd',
+    '.cccccdccd.',
+    '..ccccccdd.',
+    '...ddtdd...',
+    '.....t.....',
+    '.....t.....',
+    '....ttt....',
+  ];
+  const TREE_GAP = 64;
+
+  const farHill = (col) => snap(380 + Math.sin(col * 0.17) * 28 + Math.sin(col * 0.05) * 30);
+  const nearHill = (col) => snap(450 + Math.sin(col * 0.11 + 2) * 20 + Math.sin(col * 0.29) * 8);
+
+  // The sky never changes, so paint it (dithered bands and a blocky sun) once.
+  const sky = document.createElement('canvas');
+  sky.width = W;
+  sky.height = FLOOR;
+  {
+    const g = sky.getContext('2d');
+    const bandH = FLOOR / SKY.length;
+    for (let y = 0; y < FLOOR; y += PX) {
+      for (let x = 0; x < W; x += PX) {
+        const band = Math.floor(y / bandH);
+        const nearEdge = (band + 1) * bandH - y <= PX * 2;
+        const checker = (x + y) / PX % 2 === 0;
+        g.fillStyle = SKY[Math.min(band + (nearEdge && checker ? 1 : 0), SKY.length - 1)];
+        const dist = Math.hypot(x - 304, y - 176);
+        if (dist < 28) g.fillStyle = '#fff0b0';
+        else if (dist < 36) g.fillStyle = '#ffd870';
+        g.fillRect(x, y, PX, PX);
+      }
+    }
+  }
+
+  function drawHills(color, speed, topAt) {
+    const scroll = snap(state.time * speed);
+    ctx.fillStyle = color;
+    for (let x = -(scroll % 8); x < W; x += 8) {
+      const y = topAt(Math.floor((x + scroll) / 8));
+      ctx.fillRect(x, y, 8, FLOOR - y);
+    }
+  }
+
+  function drawTrees(speed) {
+    const scroll = snap(state.time * speed);
+    const first = Math.floor((scroll - TREE_GAP) / TREE_GAP);
+    for (let i = first; i * TREE_GAP - scroll < W; i++) {
+      const n = Math.abs(i);
+      const wx = i * TREE_GAP + (n * 37) % 24;
+      const colors = { ...FOLIAGE[n % FOLIAGE.length], t: '#4a2c18' };
+      const left = snap(wx) - scroll;
+      const top = nearHill(Math.floor(wx / 8)) + PX - TREE.length * PX;
+      TREE.forEach((row, ry) => {
+        for (let rx = 0; rx < row.length; rx++) {
+          if (row[rx] === '.') continue;
+          ctx.fillStyle = colors[row[rx]];
+          ctx.fillRect(left + rx * PX, top + ry * PX, PX, PX);
+        }
+      });
+    }
+  }
+
+  function drawLeaves() {
+    const t = state.time;
+    for (let i = 0; i < 16; i++) {
+      const x = W + 20 - (t * (0.03 + (i % 4) * 0.012) + i * 83) % (W + 40);
+      const y = (t * (0.035 + (i % 3) * 0.012) + i * 131) % FLOOR;
+      const flip = Math.floor(t / 250 + i) % 2 === 1;
+      ctx.fillStyle = LEAVES[i % LEAVES.length];
+      ctx.fillRect(snap(x + Math.sin(t / 500 + i) * 10), snap(y), flip ? PX * 2 : PX, flip ? PX : PX * 2);
+    }
+  }
+
   function drawBackground() {
-    ctx.fillStyle = '#70c5ce';
-    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(sky, 0, 0);
 
     // Clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillStyle = '#f6e6cf';
     for (const c of state.clouds) {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, 18 * c.s, 0, Math.PI * 2);
-      ctx.arc(c.x + 22 * c.s, c.y - 8 * c.s, 22 * c.s, 0, Math.PI * 2);
-      ctx.arc(c.x + 46 * c.s, c.y, 16 * c.s, 0, Math.PI * 2);
-      ctx.fill();
+      const x = snap(c.x);
+      const y = snap(c.y);
+      const w = snap(50 * c.s);
+      ctx.fillRect(x + snap(w / 4), y, snap(w / 2), PX * 2);
+      ctx.fillRect(x, y + PX * 2, w, PX * 3);
     }
+
+    drawHills('#8a5a68', 0.008, farHill);
+    drawTrees(0.02);
+    drawHills('#6e3a22', 0.02, nearHill);
+    drawLeaves();
   }
 
   function drawPipe(x, y, w, h, capAtTop) {
