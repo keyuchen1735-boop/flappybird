@@ -308,15 +308,6 @@
     ctx.closePath();
     ctx.fill();
 
-    // Red flash when the bird has just hit a pipe
-    if (b.hitFlash > 0) {
-      ctx.globalAlpha = b.hitFlash * 0.6;
-      ctx.fillStyle = '#ff3b3b';
-      ctx.beginPath();
-      ctx.arc(0, 0, BIRD_R + 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
     ctx.restore();
   }
 
