@@ -21,11 +21,11 @@
   const SCROLL = 2.1;
   const BIRD_R = 13;
 
-  // Colors — pipes are blue
-  const PIPE_BODY = '#2f7bd6';
-  const PIPE_BODY_DARK = '#1f5aa6';
-  const PIPE_RIM = '#17406f';
-  const PIPE_LIGHT = '#6aa9ea';
+  // Colors — pipes are green
+  const PIPE_BODY = '#3fa845';
+  const PIPE_BODY_DARK = '#2b7a32';
+  const PIPE_RIM = '#1d5a24';
+  const PIPE_LIGHT = '#7fd685';
 
   const STATE = { READY: 'ready', PLAYING: 'playing', OVER: 'over' };
 
