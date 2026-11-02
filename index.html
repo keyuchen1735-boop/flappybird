@@ -56,7 +56,7 @@
 
   const state = {
     mode: 'ready', // 'ready' | 'playing' | 'over'
-    bird: { y: H / 2, vy: 0, rotation: 0, hitFlash: 0 },
+    bird: { y: H / 2, vy: 0, rotation: 0 },
     pipes: [],
     score: 0,
     lastSpawn: 0,
@@ -72,7 +72,7 @@
 
   function reset() {
     state.mode = 'ready';
-    state.bird = { y: H / 2, vy: 0, rotation: 0, hitFlash: 0 };
+    state.bird = { y: H / 2, vy: 0, rotation: 0 };
     state.pipes = [];
     state.score = 0;
     state.lastSpawn = 0;
@@ -106,27 +106,7 @@
     const minTop = margin;
     const maxTop = H - GROUND_H - PIPE_GAP - margin;
     const gapTop = minTop + Math.random() * (maxTop - minTop);
-    state.pipes.push({ x: W + PIPE_WIDTH, gapTop, passed: false, hit: false });
-  }
-
-  function birdHitsPipe(pipe) {
-    const b = state.bird;
-    // Circle vs. rectangle, for top and bottom pipe segments
-    const cx = BIRD_X;
-    const cy = b.y;
-    const left = pipe.x;
-    const right = pipe.x + PIPE_WIDTH;
-    const topRect = { x1: left, y1: 0, x2: right, y2: pipe.gapTop };
-    const botRect = { x1: left, y1: pipe.gapTop + PIPE_GAP, x2: right, y2: H - GROUND_H };
-    return circleRect(cx, cy, BIRD_R - 3, topRect) || circleRect(cx, cy, BIRD_R - 3, botRect);
-  }
-
-  function circleRect(cx, cy, r, rect) {
-    const nx = Math.max(rect.x1, Math.min(cx, rect.x2));
-    const ny = Math.max(rect.y1, Math.min(cy, rect.y2));
-    const dx = cx - nx;
-    const dy = cy - ny;
-    return dx * dx + dy * dy < r * r;
+    state.pipes.push({ x: W + PIPE_WIDTH, gapTop, passed: false });
   }
 
   function update(dt, now) {
@@ -145,7 +125,6 @@
     }
 
     if (state.mode === 'over') {
-      state.bird.hitFlash = Math.max(0, state.bird.hitFlash - dt / 300);
       // Keep the bird falling to the ground after a game over
       updateBird(dt, true);
       return;
@@ -164,18 +143,12 @@
     state.pipes = state.pipes.filter((p) => p.x + PIPE_WIDTH > -10);
 
     updateBird(dt, false);
-    state.bird.hitFlash = Math.max(0, state.bird.hitFlash - dt / 300);
 
-    // Scoring and pipe collisions. Hitting a pipe does NOT end the game:
-    // it just counts a hit and flashes the bird, and the run keeps going.
+    // Scoring. Pipes have no collision: the bird flies straight through them.
     for (const p of state.pipes) {
       if (!p.passed && p.x + PIPE_WIDTH < BIRD_X - BIRD_R) {
         p.passed = true;
         state.score++;
-      }
-      if (!p.hit && birdHitsPipe(p)) {
-        p.hit = true; // flash once per pipe
-        state.bird.hitFlash = 1;
       }
     }
 
@@ -308,15 +281,6 @@
     ctx.closePath();
     ctx.fill();
 
-    // Red flash when the bird has just hit a pipe
-    if (b.hitFlash > 0) {
-      ctx.globalAlpha = b.hitFlash * 0.6;
-      ctx.fillStyle = '#ff3b3b';
-      ctx.beginPath();
-      ctx.arc(0, 0, BIRD_R + 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
     ctx.restore();
   }
 
