@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "coord": {
+      "command": "node",
+      "args": [
+        "/private/var/folders/5q/xprj0f7x5_d492wgzrtmc3s40000gn/T/AppTranslocation/F2F2C558-90CA-49C8-8F65-F60F24028FCE/d/Amoeba.app/Contents/Resources/app/amoeba-runtime/mcp/dist/server.js"
+      ]
+    }
+  }
+}
