@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "coord": {
+      "command": "node",
+      "args": [
+        "/Users/ericchen/hive-mind/hive-mind/.worktrees/lost-lease-release-20261102/packages/ide/.build-live/VSCode-darwin-arm64/Amoeba.app/Contents/Resources/app/amoeba-runtime/mcp/dist/server.js"
+      ]
+    }
+  }
+}
