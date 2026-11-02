@@ -138,9 +138,8 @@
     }
 
     for (const p of state.pipes) {
-      p.x -= PIPE_SPEED * step;
+      p.x -= PIPE_SPEED * 1.2 ** state.score * step;
     }
-    state.pipes = state.pipes.filter((p) => p.x + PIPE_WIDTH > -10);
 
     updateBird(dt, false);
 
@@ -151,6 +150,7 @@
         state.score++;
       }
     }
+    state.pipes = state.pipes.filter((p) => p.x + PIPE_WIDTH > -10);
 
     // Pipes and ground end the run
     if (hitsPipe()) {
